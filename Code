@@ -1,0 +1,141 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+#define STRING(num) #num
+
+int x;
+int y;
+int checkPoints[7][2];
+int i = 0;
+int j = 0;
+int targetX;
+int targetY;
+bool firstTime = true;
+bool allSaved = false;
+
+int startX;
+int startY;
+int endX;
+int endY;
+
+int nextCheckpointDist; // distance to the next checkpoint
+
+//Save each checkpoint to an array
+void SaveCheckpoints(int x, int y)
+{
+    checkPoints[i][0] = x;
+    checkPoints[i][1] = y;
+    i = i + 1;
+}
+
+
+//Find the optimal location for the target
+void findTarget(bool newCheckpoint)
+{
+    
+    if(newCheckpoint)
+    {
+        //Get the current checkpoint of the spaceship
+        if(firstTime)
+        {
+            startX = x;
+            startY = y;
+            firstTime = false;
+        }
+        else
+        {
+            //Save checkpoint coordinates to an array
+            if (j == 0)
+            {
+                startX = checkPoints[i - 1][0];
+                startY = checkPoints[i - 1][1];
+            }
+            else
+            {
+                startX = checkPoints[j - 1][0];
+                startY = checkPoints[j - 1][1];
+            }
+            
+        }
+        //Get the target checkpoint from the array
+        endX = checkPoints[j][0];
+        endY = checkPoints[j][1];
+    }
+
+    //Get a target between starting checkpoint and endcheckpoint,
+    //set it's position relative to the distance of the player and the end checkpoint
+    targetX = endX - (endX - startX) / (nextCheckpointDist / 700);
+    targetY = endY - (endY - startY) / (nextCheckpointDist / 700);
+    
+}
+
+//MAIN
+int main()
+{
+    bool boosted = false;
+    // game loop
+    while (1) {
+        
+        //String movement will hold movement output. Either BOOST, SHIELD or thrust value
+        string movement;
+        int thrust = 100;
+        int shieldDist = 1000;
+        int nextCheckpointX; // x position of the next check point
+        int nextCheckpointY; // y position of the next check point
+        int checkpointCheckX;
+        int nextCheckpointAngle; // angle between your pod orientation and the direction of the next checkpoint
+        cin >> x >> y >> nextCheckpointX >> nextCheckpointY >> nextCheckpointDist >> nextCheckpointAngle; cin.ignore();
+        int opponentX;
+        int opponentY;
+        cin >> opponentX >> opponentY; cin.ignore();
+
+        if(checkpointCheckX == 0 or checkpointCheckX != nextCheckpointX)
+        {
+            
+            //Save checkpoint
+            if (checkPoints[0][0] == nextCheckpointX and checkPoints[0][1] == nextCheckpointY)
+            {
+                j = 0;
+                allSaved = true;
+            }
+            if (allSaved == false)
+            {
+                SaveCheckpoints(nextCheckpointX, nextCheckpointY);
+            }
+
+            //Find target
+            findTarget(true);
+            j++;
+        }
+
+        //Regulate thrust based on the angle of next checkpoint
+        if (nextCheckpointAngle > 90 or nextCheckpointAngle < -90)
+        {
+            thrust = 0;
+        }
+        else
+        {
+            thrust = 100;// - abs(nextCheckpointAngle / 0.9);
+        }
+
+        //if the next checkpoint is far enough and the angle is small we will use the boost.
+        //After this we will set boosted to true to stop running this part of code
+        if (nextCheckpointDist > 4800 and 5 > nextCheckpointAngle and nextCheckpointAngle > -5 and boosted == false)
+        {
+            movement = "BOOST";
+            boosted = true;
+        }
+        else
+        {
+            movement = std::to_string(thrust);
+        }
+        cout << targetX << " " << targetY << " " << movement << endl;
+
+        checkpointCheckX = nextCheckpointX;
+    }
+}
